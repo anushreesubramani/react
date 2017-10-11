@@ -118,19 +118,34 @@ if (__DEV__) {
   } = require('ReactDebugFiberPerf');
 
   var didWarnAboutStateTransition = false;
+  var ownerHasNoopWarning = {};
 
   var warnAboutUpdateOnUnmounted = function(
     instance: React$ComponentType<any>,
   ) {
     const ctor = instance.constructor;
+    const currentComponent =
+      (ctor && (ctor.displayName || ctor.name)) || 'ReactClass';
+    const currentComponentErrorInfo =
+      'Can only update a mounted or mounting ' +
+      'component. This usually means you called setState, replaceState, ' +
+      'or forceUpdate on an unmounted component. This is a no-op.\n\nPlease ' +
+      'check the code for the ' +
+      currentComponent +
+      ' component.';
+
+    if (ownerHasNoopWarning[currentComponentErrorInfo]) {
+      return;
+    }
     warning(
       false,
-      'Can only update a mounted or mounting component. This usually means ' +
-        'you called setState, replaceState, or forceUpdate on an unmounted ' +
-        'component. This is a no-op.\n\nPlease check the code for the ' +
-        '%s component.',
-      (ctor && (ctor.displayName || ctor.name)) || 'ReactClass',
+      'Can only update a mounted or mounting ' +
+        'component. This usually means you called setState, replaceState, ' +
+        'or forceUpdate on an unmounted component. This is a no-op.\n\nPlease ' +
+        'check the code for the %s component.',
+      currentComponent,
     );
+    ownerHasNoopWarning[currentComponentErrorInfo] = true;
   };
 
   var warnAboutInvalidUpdates = function(instance: React$ComponentType<any>) {
